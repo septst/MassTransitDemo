@@ -32,9 +32,9 @@ namespace Sample.Service.Controllers
                     CustomerNumber = customerNumber
                 });
 
-            return Ok(accepted.IsCompletedSuccessfully
-                ? await accepted
-                : await rejected);
+            return accepted.IsCompletedSuccessfully
+                ? Ok(await accepted)
+                : BadRequest(await rejected);
         }
     }
 }
