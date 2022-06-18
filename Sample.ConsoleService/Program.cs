@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MassTransit.Definition;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Sample.Components;
@@ -34,7 +31,7 @@ class Program
                 services.AddMassTransit(cfg =>
                 {
                     cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
-                    cfg.AddBus(ConfigureBus);
+                    cfg.UsingRabbitMq(ConfigureBus);
                 });
                 services.AddHostedService<MassTransitConsoleHostedService>();
             })
@@ -50,15 +47,10 @@ class Program
             await builder.RunConsoleAsync();
     }
 
-    static IBusControl ConfigureBus(IServiceProvider provider)
+    static void ConfigureBus(
+        IBusRegistrationContext context,
+        IRabbitMqBusFactoryConfigurator configurator)
     {
-        return Bus.Factory.CreateUsingRabbitMq(cfg =>
-        {
-            cfg.Host("localhost:15672", vh =>
-            {
-                vh.Username("guest");
-                vh.Password("guest");
-            });
-        });
+        configurator.ConfigureEndpoints(context);
     }
 }
