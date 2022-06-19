@@ -31,7 +31,10 @@ class Program
                 services.AddMassTransit(cfg =>
                 {
                     cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
-                    cfg.UsingRabbitMq(ConfigureBus);
+                    cfg.UsingRabbitMq((context, mqCfg) =>
+                    {
+                        mqCfg.ConfigureEndpoints(context);
+                    });
                 });
                 services.AddHostedService<MassTransitConsoleHostedService>();
             })
@@ -45,12 +48,5 @@ class Program
             await builder.UseWindowsService().Build().RunAsync();
         else
             await builder.RunConsoleAsync();
-    }
-
-    static void ConfigureBus(
-        IBusRegistrationContext context,
-        IRabbitMqBusFactoryConfigurator configurator)
-    {
-        configurator.ConfigureEndpoints(context);
     }
 }

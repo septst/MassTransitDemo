@@ -1,4 +1,5 @@
 using MassTransit;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Sample.Components;
 using Sample.Contracts;
 
@@ -13,9 +14,11 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddOpenApiDocument();
 
-builder.Services.AddMediator(cfg =>
+builder.Services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
+builder.Services.AddMassTransit(cfg =>
 {
-    cfg.AddConsumer<SubmitOrderConsumer>();
+    cfg.AddBus(provider => Bus.Factory.CreateUsingRabbitMq());
+    // cfg.AddConsumer<SubmitOrderConsumer>();
     cfg.AddRequestClient<SubmitOrder>();
 });
 

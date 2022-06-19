@@ -33,7 +33,7 @@ namespace Sample.Service.Controllers
                 });
 
             return accepted.IsCompletedSuccessfully
-                ? Ok(await accepted)
+                ? Accepted(await accepted)
                 : BadRequest(await rejected);
         }
     }
