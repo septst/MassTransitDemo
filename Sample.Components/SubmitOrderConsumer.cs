@@ -17,24 +17,27 @@ public class SubmitOrderConsumer
     public async Task Consume(ConsumeContext<SubmitOrder> context)
     {
         _logger.Log(LogLevel.Debug, "SubmitOrderConsumer: {CustomerNumber}", context.Message.CustomerNumber);
-        if (context.Message.CustomerNumber.Contains("Test"))
+        if (context.RequestId != null)
         {
-            await context.RespondAsync<OrderSubmissionRejected>(new
+            if (context.Message.CustomerNumber.Contains("Test"))
+            {
+                await context.RespondAsync<OrderSubmissionRejected>(new
                 {
                     context.Message.OrderId,
                     InVar.Timestamp,
                     context.Message.CustomerNumber,
                     Reason = $"The customer cannot place this order."
                 });
-        }
-        else
-        {
-            await context.RespondAsync<OrderSubmissionAccepted>(new
+            }
+            else
             {
-                context.Message.OrderId,
-                InVar.Timestamp,
-                context.Message.CustomerNumber
-            });
+                await context.RespondAsync<OrderSubmissionAccepted>(new
+                {
+                    context.Message.OrderId,
+                    InVar.Timestamp,
+                    context.Message.CustomerNumber
+                });
+            }
         }
     }
 }

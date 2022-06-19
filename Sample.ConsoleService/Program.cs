@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Sample.Components;
+using Serilog;
 
 namespace Sample.ConsoleService;
 
@@ -40,8 +41,8 @@ class Program
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
+                logging.AddSerilog(dispose: true);
                 logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
-                logging.AddConsole();
             });
 
         if (isService)

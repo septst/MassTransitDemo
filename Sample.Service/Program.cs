@@ -2,11 +2,11 @@ using MassTransit;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Sample.Components;
 using Sample.Contracts;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -19,8 +19,11 @@ builder.Services.AddMassTransit(cfg =>
 {
     cfg.AddBus(provider => Bus.Factory.CreateUsingRabbitMq());
     // cfg.AddConsumer<SubmitOrderConsumer>();
-    cfg.AddRequestClient<SubmitOrder>();
+    cfg.AddRequestClient<SubmitOrder>(
+        new Uri($"exchange:{KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>()}"));
 });
+
+builder.Logging.AddSerilog(dispose: true);
 
 var app = builder.Build();
 
