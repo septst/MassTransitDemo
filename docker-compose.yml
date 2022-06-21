@@ -1,6 +1,5 @@
 version: "3.6"
 
-
 services:
   rabbitmq:
     image: masstransit/rabbitmq:latest
@@ -12,7 +11,10 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
-      test:
-        - "CMD"
-        - "rabbitmqctl"
-        - "status" 
+  
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    
+  
