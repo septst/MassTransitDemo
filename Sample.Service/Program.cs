@@ -20,8 +20,11 @@ builder.Services.AddMassTransit(cfg =>
 {
     cfg.AddBus(provider => Bus.Factory.CreateUsingRabbitMq());
     // cfg.AddConsumer<SubmitOrderConsumer>();
+    
     cfg.AddRequestClient<SubmitOrder>(
         new Uri($"exchange:{KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>()}"));
+    
+    cfg.AddRequestClient<CheckOrder>();    
 });
 
 Log.Logger = new LoggerConfiguration()

@@ -9,18 +9,38 @@ namespace Sample.Service.Controllers
     public class OrderController : ControllerBase
     {
         private readonly ILogger<OrderController> _logger;
-        private readonly IRequestClient<SubmitOrder> _requestClient;
+        private readonly IRequestClient<SubmitOrder> _submitOrderRequestClient;
+        private readonly IRequestClient<CheckOrder> _checkOrderRequestClient;
         private readonly ISendEndpointProvider _sendEndpointProvider;
 
         public OrderController(
             ILogger<OrderController> logger,
-            IRequestClient<SubmitOrder> requestClient,
+            IRequestClient<SubmitOrder> submitOrderRequestClient,
+            IRequestClient<CheckOrder> checkOrderRequestClient
             ISendEndpointProvider  sendEndpointProvider
         )
         {
             _logger = logger;
-            _requestClient = requestClient;
+            _submitOrderRequestClient = submitOrderRequestClient;
+            _checkOrderRequestClient = checkOrderRequestClient;
             _sendEndpointProvider = sendEndpointProvider;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Get(Guid id)
+        {
+            var (status, notFound) = await _checkOrderRequestClient.GetResponse<OrderStatus, OrderNotFound>(new {OrderId = id});
+
+            if(status.IsCompletedSuccessfully)
+            {
+                var response = await status;
+                return Ok(response.Message);
+            }
+            else
+            {
+                var response = await notFound;
+                return NotFound(response.Message);
+            }
         }
 
         [HttpPost]
@@ -28,7 +48,7 @@ namespace Sample.Service.Controllers
             string customerNumber)
         {
             var (accepted, rejected) =
-                await _requestClient.GetResponse<OrderSubmissionAccepted, OrderSubmissionRejected>(new
+                await _submitOrderRequestClient.GetResponse<OrderSubmissionAccepted, OrderSubmissionRejected>(new
                 {
                     OrderId = orderId,
                     Timestamp = InVar.Timestamp,
