@@ -12,7 +12,12 @@ public class OrderStateMachine:
         Event(() => OrderSubmittedEvent,
             x => 
                 x.CorrelateById(y => y.Message.OrderId));
-        
+        Event(() => OrderStatusRequestedEvent, x => 
+        {
+            x.CorrelateById(y => y.Message.OrderId);
+            //x.OnMissingInstance
+        });
+
         //Specify instance state
         InstanceState(x => x.CurrentState);
         
@@ -29,6 +34,15 @@ public class OrderStateMachine:
         During(SubmittedState,
             Ignore(OrderSubmittedEvent));
         
+        During(
+            When(OrderStatusRequestedEvent)
+            .RespondAsync(x => x.Init<OrderStatus>(new
+            {
+                OrderId = x.Instance.CorrelationId,
+                State = x.Instance.CurrentState
+            }))
+        );
+        
         DuringAny(
             When(OrderSubmittedEvent)
                 .Then(context => 
@@ -41,6 +55,7 @@ public class OrderStateMachine:
 
     public State SubmittedState { get; private set; }
     public Event<OrderSubmitted> OrderSubmittedEvent { get; private set; }
+    public Event<CheckOrder> OrderStatusRequestedEvent { get; private set; }
 }
 
 public class OrderState : 
