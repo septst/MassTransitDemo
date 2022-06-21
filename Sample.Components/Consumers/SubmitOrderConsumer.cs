@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Sample.Contracts;
 
-namespace Sample.Components;
+namespace Sample.Components.Consumers;
 
 public class SubmitOrderConsumer
     : IConsumer<SubmitOrder>
@@ -31,6 +31,13 @@ public class SubmitOrderConsumer
             }
             else
             {
+                await context.Publish<OrderSubmitted>(new
+                {
+                    context.Message.OrderId,
+                    InVar.Timestamp,
+                    context.Message.CustomerNumber
+                });
+                
                 await context.RespondAsync<OrderSubmissionAccepted>(new
                 {
                     context.Message.OrderId,

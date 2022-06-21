@@ -1,8 +1,9 @@
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Sample.Components;
+using Sample.Components.Consumers;
 using Sample.Contracts;
 using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,13 @@ builder.Services.AddMassTransit(cfg =>
     cfg.AddRequestClient<SubmitOrder>(
         new Uri($"exchange:{KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>()}"));
 });
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateLogger();
 
 builder.Logging.AddSerilog(dispose: true);
 

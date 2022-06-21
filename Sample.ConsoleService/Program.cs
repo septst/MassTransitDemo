@@ -1,13 +1,14 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Sample.Components;
+using Sample.Components.Consumers;
+using Sample.Components.StateMachines;
 using Serilog;
+using Serilog.Events;
 
 namespace Sample.ConsoleService;
 
@@ -16,6 +17,13 @@ class Program
     static async Task Main(string[] args)
     {
         var isService = !(Debugger.IsAttached || args.Contains("--console"));
+        
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .CreateLogger();
 
         var builder = new HostBuilder()
             .ConfigureAppConfiguration((hostingContext, config) =>
@@ -32,6 +40,9 @@ class Program
                 services.AddMassTransit(cfg =>
                 {
                     cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
+                    cfg.AddSagaStateMachine<OrderStateMachine, OrderState>()
+                        .RedisRepository(x =>
+                            x.DatabaseConfiguration("127.0.0.1:6379"));
                     cfg.UsingRabbitMq((context, mqCfg) =>
                     {
                         mqCfg.ConfigureEndpoints(context);
