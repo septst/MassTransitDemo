@@ -29,9 +29,18 @@ namespace Sample.Service.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(Guid id)
         {
-            var response = await _checkOrderRequestClient.GetResponse<OrderStatus>(new {OrderId = id});
+            var (status, notFound) = await _checkOrderRequestClient.GetResponse<OrderStatus, OrderNotFound>(new {OrderId = id});
 
-            return Ok(response.Message);
+            if(status.IsCompletedSuccessfully)
+            {
+                var response = await status;
+                return Ok(response.Message);
+            }
+            else
+            {
+                var response = await notFound;
+                return NotFound(response.Message);
+            }
         }
 
         [HttpPost]
