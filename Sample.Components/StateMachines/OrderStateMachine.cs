@@ -35,7 +35,6 @@ public class OrderStateMachine:
                     {
                         context.Instance.SubmitDate = context.Data.Timestamp;
                         context.Instance.CustomerNumber = context.Data.CustomerNumber;
-                        context.Instance.Updated = InVar.Timestamp;
                     })      
             );
     }
