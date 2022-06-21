@@ -40,7 +40,7 @@ class Program
                 services.AddMassTransit(cfg =>
                 {
                     cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
-                    cfg.AddSagaStateMachine<OrderStateMachine, OrderState>()
+                    cfg.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
                         .RedisRepository(x =>
                             x.DatabaseConfiguration("127.0.0.1:6379"));
                     cfg.UsingRabbitMq((context, mqCfg) =>
