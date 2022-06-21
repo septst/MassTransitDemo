@@ -18,7 +18,26 @@ public class OrderStateMachine:
         
         Initially(
             When(OrderSubmittedEvent)
+                .Then(context => 
+                    {
+                        context.Instance.SubmitDate = context.Data.Timestamp;
+                        context.Instance.CustomerNumber = context.Data.CustomerNumber;
+                        context.Instance.Updated = InVar.Timestamp;
+                    })
                 .TransitionTo(SubmittedState));
+        
+        During(SubmittedState,
+            Ignore(OrderSubmittedEvent));
+        
+        DuringAny(
+            When(OrderSubmittedEvent)
+                .Then(context => 
+                    {
+                        context.Instance.SubmitDate = context.Data.Timestamp;
+                        context.Instance.CustomerNumber = context.Data.CustomerNumber;
+                        context.Instance.Updated = InVar.Timestamp;
+                    })      
+            );
     }
 
     public State SubmittedState { get; private set; }
@@ -31,5 +50,11 @@ public class OrderState :
 {
     public Guid CorrelationId { get; set; }
     public string CurrentState { get; set; }
+
+    public DateTime SubmitDate { get; set; }
+    public DateTime Updated { get; set; }
+    public string CustomerNumber { get; set; }
+        
+
     public int Version { get; set; }
 }
