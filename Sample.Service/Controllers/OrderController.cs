@@ -16,8 +16,8 @@ namespace Sample.Service.Controllers
         public OrderController(
             ILogger<OrderController> logger,
             IRequestClient<SubmitOrder> submitOrderRequestClient,
-            IRequestClient<CheckOrder> checkOrderRequestClient
-            ISendEndpointProvider  sendEndpointProvider
+            IRequestClient<CheckOrder> checkOrderRequestClient,
+            ISendEndpointProvider sendEndpointProvider
         )
         {
             _logger = logger;
@@ -29,9 +29,12 @@ namespace Sample.Service.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(Guid id)
         {
-            var (status, notFound) = await _checkOrderRequestClient.GetResponse<OrderStatus, OrderNotFound>(new {OrderId = id});
+            var (status, notFound) = await _checkOrderRequestClient.GetResponse<OrderStatus, OrderNotFound>(new
+            {
+                OrderId = id
+            });
 
-            if(status.IsCompletedSuccessfully)
+            if (status.IsCompletedSuccessfully)
             {
                 var response = await status;
                 return Ok(response.Message);
@@ -59,7 +62,7 @@ namespace Sample.Service.Controllers
                 ? Accepted(await accepted)
                 : BadRequest(await rejected);
         }
-        
+
         [HttpPut]
         public async Task<IActionResult> Put(Guid orderId,
             string customerNumber)
@@ -67,11 +70,11 @@ namespace Sample.Service.Controllers
             var endpoint = await _sendEndpointProvider.GetSendEndpoint(
                 new Uri($"exchange:submit-order"));
             await endpoint.Send<SubmitOrder>(new
-                {
-                    OrderId = orderId,
-                    Timestamp = InVar.Timestamp,
-                    CustomerNumber = customerNumber
-                });
+            {
+                OrderId = orderId,
+                Timestamp = InVar.Timestamp,
+                CustomerNumber = customerNumber
+            });
 
             return Accepted();
         }

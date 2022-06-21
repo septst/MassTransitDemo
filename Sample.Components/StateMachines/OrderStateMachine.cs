@@ -3,54 +3,64 @@ using Sample.Contracts;
 
 namespace Sample.Components.StateMachines;
 
-public class OrderStateMachine:
+public class OrderStateMachine :
     MassTransitStateMachine<OrderState>
 {
     public OrderStateMachine()
     {
         // Specify CorrelationId for the event
         Event(() => OrderSubmittedEvent,
-            x => 
+            x =>
                 x.CorrelateById(y => y.Message.OrderId));
-        Event(() => OrderStatusRequestedEvent, x => 
-        {
-            x.CorrelateById(y => y.Message.OrderId);
-            //x.OnMissingInstance
-        });
+        Event(() => OrderStatusRequestedEvent,
+            x =>
+            {
+                x.CorrelateById(y => y.Message.OrderId);
+                x.OnMissingInstance(x =>
+                    x.ExecuteAsync(async context =>
+                        {
+                            if (context.RequestId.HasValue)
+                            {
+                                await context.RespondAsync<OrderNotFound>(new { context.Message.OrderId });
+                            }
+                        }
+                    ));
+            });
 
         //Specify instance state
         InstanceState(x => x.CurrentState);
-        
+
         Initially(
             When(OrderSubmittedEvent)
-                .Then(context => 
-                    {
-                        context.Instance.SubmitDate = context.Data.Timestamp;
-                        context.Instance.CustomerNumber = context.Data.CustomerNumber;
-                        context.Instance.Updated = InVar.Timestamp;
-                    })
+                .Then(context =>
+                {
+                    context.Saga.SubmitDate = context.Message.Timestamp;
+                    context.Saga.CustomerNumber = context.Message.CustomerNumber;
+                    context.Saga.Updated = InVar.Timestamp;
+                })
                 .TransitionTo(SubmittedState));
-        
+
         During(SubmittedState,
             Ignore(OrderSubmittedEvent));
-        
-        During(
+
+        DuringAny(
             When(OrderStatusRequestedEvent)
-            .RespondAsync(x => x.Init<OrderStatus>(new
-            {
-                OrderId = x.Instance.CorrelationId,
-                State = x.Instance.CurrentState
-            }))
+                .RespondAsync(x =>
+                    x.Init<OrderStatus>(new
+                    {
+                        OrderId = x.Saga.CorrelationId,
+                        State = x.Saga.CurrentState
+                    }))
         );
-        
+
         DuringAny(
             When(OrderSubmittedEvent)
-                .Then(context => 
-                    {
-                        context.Instance.SubmitDate = context.Data.Timestamp;
-                        context.Instance.CustomerNumber = context.Data.CustomerNumber;
-                    })      
-            );
+                .Then(context =>
+                {
+                    context.Saga.SubmitDate = context.Message.Timestamp;
+                    context.Saga.CustomerNumber ??= context.Message.CustomerNumber;
+                })
+        );
     }
 
     public State SubmittedState { get; private set; }
@@ -58,7 +68,7 @@ public class OrderStateMachine:
     public Event<CheckOrder> OrderStatusRequestedEvent { get; private set; }
 }
 
-public class OrderState : 
+public class OrderState :
     SagaStateMachineInstance,
     ISagaVersion
 {
@@ -67,8 +77,8 @@ public class OrderState :
 
     public DateTime SubmitDate { get; set; }
     public DateTime Updated { get; set; }
-    public string CustomerNumber { get; set; }
-        
+    public string? CustomerNumber { get; set; }
+
 
     public int Version { get; set; }
 }
