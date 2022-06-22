@@ -3,7 +3,7 @@ using Sample.Contracts;
 
 namespace Sample.Components.StateMachines.OrderStateMachineActivities;
 
-public class AcceptOrderActivity:
+public class AcceptOrderActivity :
     IStateMachineActivity<OrderState, OrderAccepted>
 {
     public void Probe(ProbeContext context)
@@ -17,7 +17,7 @@ public class AcceptOrderActivity:
     }
 
     public async Task Execute(
-        BehaviorContext<OrderState, OrderAccepted> context, 
+        BehaviorContext<OrderState, OrderAccepted> context,
         IBehavior<OrderState, OrderAccepted> next)
     {
         Console.WriteLine($"The Order Id is {context.Message.OrderId}");
@@ -26,8 +26,8 @@ public class AcceptOrderActivity:
     }
 
     public Task Faulted<TException>(
-        BehaviorExceptionContext<OrderState, OrderAccepted, TException> context, 
-        IBehavior<OrderState, OrderAccepted> next) 
+        BehaviorExceptionContext<OrderState, OrderAccepted, TException> context,
+        IBehavior<OrderState, OrderAccepted> next)
         where TException : Exception
     {
         return next.Faulted(context);

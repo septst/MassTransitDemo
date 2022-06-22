@@ -176,8 +176,7 @@ public class OrderStateMachineTests
 
             await harness.Bus.Publish<OrderAccepted>(new
             {
-                OrderId = orderId,
-                Timestamp = InVar.Timestamp
+                OrderId = orderId, InVar.Timestamp
             });
 
             instanceId = await saga.Exists(orderId, x => x.Accepted);
@@ -200,8 +199,8 @@ public class OrderStateMachineTests
         var orderStateMachine = new OrderStateMachine();
         var graph = orderStateMachine.GetGraph();
         var generator = new StateMachineGraphvizGenerator(graph);
-        string dots = generator.CreateDotFile();
-        
+        var dots = generator.CreateDotFile();
+
         _testOutputHelper.WriteLine(dots);
     }
 }

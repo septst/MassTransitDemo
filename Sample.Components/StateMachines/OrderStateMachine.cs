@@ -1,5 +1,4 @@
 using MassTransit;
-using MassTransit.MongoDbIntegration.Saga;
 using MongoDB.Bson.Serialization.Attributes;
 using Sample.Components.StateMachines.OrderStateMachineActivities;
 using Sample.Contracts;
@@ -29,11 +28,11 @@ public class OrderStateMachine :
             });
         Event(() => AccountClosedEvent,
             x =>
-                x.CorrelateBy((saga, context) => 
+                x.CorrelateBy((saga, context) =>
                     saga.CustomerNumber == context.Message.CustomerNumber));
         Event(() => OrderAcceptedEvent, x =>
             x.CorrelateById(y => y.Message.OrderId));
-        
+
         //Specify instance state
         InstanceState(x => x.CurrentState);
 
@@ -88,13 +87,13 @@ public class OrderState :
     SagaStateMachineInstance,
     ISagaVersion
 {
-    [BsonId]
-    public Guid CorrelationId { get; set; }
     public string CurrentState { get; set; }
 
     public DateTime SubmitDate { get; set; }
     public DateTime Updated { get; set; }
     public string? CustomerNumber { get; set; }
-    
+
     public int Version { get; set; }
+
+    [BsonId] public Guid CorrelationId { get; set; }
 }
