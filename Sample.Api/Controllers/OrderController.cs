@@ -2,7 +2,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Sample.Contracts;
 
-namespace Sample.Service.Controllers;
+namespace Sample.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

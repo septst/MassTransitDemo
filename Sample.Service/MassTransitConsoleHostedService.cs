@@ -1,7 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Hosting;
 
-namespace Sample.ConsoleService;
+namespace Sample.Service;
 
 public class MassTransitConsoleHostedService : IHostedService
 {

@@ -1,50 +1,61 @@
+﻿using System.Diagnostics;
 using MassTransit;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Sample.Components.Consumers;
-using Sample.Contracts;
+using Sample.Components.StateMachines;
 using Serilog;
 using Serilog.Events;
 
-var builder = WebApplication.CreateBuilder(args);
+namespace Sample.Service;
 
-// Add services to the container.
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddOpenApiDocument();
-
-builder.Services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
-builder.Services.AddMassTransit(cfg =>
+internal class Program
 {
-    cfg.AddBus(provider => Bus.Factory.CreateUsingRabbitMq());
-    // cfg.AddConsumer<SubmitOrderConsumer>();
+    private static async Task Main(string[] args)
+    {
+        var isService = !(Debugger.IsAttached || args.Contains("--console"));
 
-    cfg.AddRequestClient<SubmitOrder>(
-        new Uri($"exchange:{KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>()}"));
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .CreateLogger();
 
-    cfg.AddRequestClient<CheckOrder>();
-});
+        var builder = new HostBuilder()
+            .ConfigureAppConfiguration((hostingContext, config) =>
+            {
+                config.AddJsonFile("appsettings.json", true);
+                config.AddEnvironmentVariables();
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .CreateLogger();
+                if (args != null)
+                    config.AddCommandLine(args);
+            })
+            .ConfigureServices((hostContext, services) =>
+            {
+                services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
+                services.AddMassTransit(cfg =>
+                {
+                    cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
+                    cfg.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
+                        .RedisRepository(x =>
+                            x.DatabaseConfiguration("127.0.0.1:6379"));
+                    cfg.UsingRabbitMq((context, mqCfg) => { mqCfg.ConfigureEndpoints(context); });
+                });
+                services.AddHostedService<MassTransitConsoleHostedService>();
+            })
+            .ConfigureLogging((hostingContext, logging) =>
+            {
+                logging.AddSerilog(dispose: true);
+                logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+            });
 
-builder.Logging.AddSerilog(dispose: true);
-
-var app = builder.Build();
-
-app.UseOpenApi();
-app.UseSwaggerUi3();
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+        if (isService)
+            await builder.UseWindowsService().Build().RunAsync();
+        else
+            await builder.RunConsoleAsync();
+    }
+}
