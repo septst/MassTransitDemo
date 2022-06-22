@@ -29,7 +29,7 @@ public class SubmitOrderConsumer
                 context.Message.OrderId,
                 InVar.Timestamp,
                 context.Message.CustomerNumber,
-                Reason = $"The customer cannot place this order."
+                Reason = "The customer cannot place this order."
             });
             return;
         }
@@ -40,15 +40,13 @@ public class SubmitOrderConsumer
             InVar.Timestamp,
             context.Message.CustomerNumber
         });
-        
+
         if (context.RequestId != null)
-        {
             await context.RespondAsync<OrderSubmissionAccepted>(new
             {
                 context.Message.OrderId,
                 InVar.Timestamp,
                 context.Message.CustomerNumber
             });
-        }
     }
 }

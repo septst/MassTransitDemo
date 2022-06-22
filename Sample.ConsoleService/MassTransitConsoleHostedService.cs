@@ -3,9 +3,9 @@ using Microsoft.Extensions.Hosting;
 
 namespace Sample.ConsoleService;
 
-public class MassTransitConsoleHostedService: IHostedService
+public class MassTransitConsoleHostedService : IHostedService
 {
-    readonly IBusControl _bus;
+    private readonly IBusControl _bus;
 
     public MassTransitConsoleHostedService(IBusControl bus)
     {

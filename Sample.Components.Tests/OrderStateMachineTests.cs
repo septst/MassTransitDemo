@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using MassTransit;
 using MassTransit.Testing;
-using Sample.Components.Consumers;
 using Sample.Components.StateMachines;
 using Sample.Contracts;
 using Xunit;
@@ -36,7 +35,7 @@ public class OrderStateMachineTests
             await harness.Bus.Publish<OrderSubmitted>(new
             {
                 OrderId = orderId,
-                Timestamp = InVar.Timestamp,
+                InVar.Timestamp,
                 CustomerNumber = "12345"
             });
 
@@ -45,7 +44,7 @@ public class OrderStateMachineTests
 
             var instanceId = await saga.Exists(orderId, o => o.SubmittedState);
             instanceId.Should().NotBeNull();
-            
+
             var instance = saga.Created.Contains(instanceId.Value);
             instance.CustomerNumber.Should().Be("12345");
         }
@@ -59,7 +58,7 @@ public class OrderStateMachineTests
             await harness.Stop();
         }
     }
-    
+
     [Fact]
     public async Task Check_Order_Status_Returns_Response()
     {
@@ -76,7 +75,7 @@ public class OrderStateMachineTests
             await harness.Bus.Publish<OrderSubmitted>(new
             {
                 OrderId = orderId,
-                Timestamp = InVar.Timestamp,
+                InVar.Timestamp,
                 CustomerNumber = "12345"
             });
 

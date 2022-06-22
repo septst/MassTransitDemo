@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using MassTransit;
-using MassTransit.JobService;
 using MassTransit.Testing;
 using Sample.Components.Consumers;
 using Sample.Contracts;
@@ -34,7 +33,7 @@ public class SubmitOrderConsumerTests
             await harness.InputQueueSendEndpoint.Send<SubmitOrder>(new
             {
                 OrderId = orderId,
-                Timestamp = InVar.Timestamp,
+                InVar.Timestamp,
                 CustomerNumber = "Customer1"
             });
 
@@ -51,7 +50,7 @@ public class SubmitOrderConsumerTests
             await harness.Stop();
         }
     }
-    
+
     [Fact]
     public async Task Consume_Order_Request_Returns_OrderId()
     {
@@ -64,11 +63,11 @@ public class SubmitOrderConsumerTests
         {
             var orderId = InVar.Id;
             var requestClient = await harness.ConnectRequestClient<SubmitOrder>();
-            
+
             var response = await requestClient.GetResponse<OrderSubmissionAccepted>(new
             {
                 OrderId = orderId,
-                Timestamp = InVar.Timestamp,
+                InVar.Timestamp,
                 CustomerNumber = "Customer1"
             });
 
@@ -88,7 +87,7 @@ public class SubmitOrderConsumerTests
             await harness.Stop();
         }
     }
-    
+
     [Fact]
     public async Task Consume_Test_Consumer_Order_Request_Rejects_Order()
     {
@@ -101,13 +100,14 @@ public class SubmitOrderConsumerTests
         {
             var orderId = InVar.Id;
             var requestClient = await harness.ConnectRequestClient<SubmitOrder>();
-            
-            var (accepted, rejected) = await requestClient.GetResponse<OrderSubmissionAccepted, OrderSubmissionRejected>(new
-            {
-                OrderId = orderId,
-                Timestamp = InVar.Timestamp,
-                CustomerNumber = "Test"
-            });
+
+            var (accepted, rejected) =
+                await requestClient.GetResponse<OrderSubmissionAccepted, OrderSubmissionRejected>(new
+                {
+                    OrderId = orderId,
+                    InVar.Timestamp,
+                    CustomerNumber = "Test"
+                });
 
             var isConsumed = await consumer.Consumed.Any<SubmitOrder>();
             var isSent = await harness.Sent.Any<OrderSubmissionRejected>();
@@ -128,7 +128,7 @@ public class SubmitOrderConsumerTests
             await harness.Stop();
         }
     }
-    
+
     [Fact]
     public async Task Consume_Test_Consumer_Order_Request_Not_Publish_Order_Submitted()
     {
@@ -143,7 +143,7 @@ public class SubmitOrderConsumerTests
             await harness.InputQueueSendEndpoint.Send<SubmitOrder>(new
             {
                 OrderId = orderId,
-                Timestamp = InVar.Timestamp,
+                InVar.Timestamp,
                 CustomerNumber = "TestCustomer"
             });
 
@@ -162,7 +162,7 @@ public class SubmitOrderConsumerTests
             await harness.Stop();
         }
     }
-    
+
     [Fact]
     public async Task Consume_Order_Request_Publish_Order_Submitted()
     {
@@ -196,5 +196,4 @@ public class SubmitOrderConsumerTests
             await harness.Stop();
         }
     }
-
 }

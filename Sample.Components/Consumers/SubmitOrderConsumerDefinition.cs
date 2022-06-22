@@ -2,7 +2,7 @@ using MassTransit;
 
 namespace Sample.Components.Consumers;
 
-public class SubmitOrderConsumerDefinition:
+public class SubmitOrderConsumerDefinition :
     ConsumerDefinition<SubmitOrderConsumer>
 {
     protected override void ConfigureConsumer(

@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Sample.Components.Consumers;
 using Sample.Components.StateMachines;
 using Serilog;
@@ -12,12 +12,12 @@ using Serilog.Events;
 
 namespace Sample.ConsoleService;
 
-class Program
+internal class Program
 {
-    static async Task Main(string[] args)
+    private static async Task Main(string[] args)
     {
         var isService = !(Debugger.IsAttached || args.Contains("--console"));
-        
+
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -43,10 +43,7 @@ class Program
                     cfg.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
                         .RedisRepository(x =>
                             x.DatabaseConfiguration("127.0.0.1:6379"));
-                    cfg.UsingRabbitMq((context, mqCfg) =>
-                    {
-                        mqCfg.ConfigureEndpoints(context);
-                    });
+                    cfg.UsingRabbitMq((context, mqCfg) => { mqCfg.ConfigureEndpoints(context); });
                 });
                 services.AddHostedService<MassTransitConsoleHostedService>();
             })

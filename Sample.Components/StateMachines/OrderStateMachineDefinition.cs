@@ -20,11 +20,11 @@ public class OrderStateMachineDefinition :
             x.UsePartitioner(partition,
                 o => o.Message.CustomerNumber));
 
-        endpointConfigurator.UseMessageRetry(r => 
-                r.Exponential(50,
-                    TimeSpan.FromSeconds(1),
-                    TimeSpan.FromMinutes(1),
-                    TimeSpan.FromSeconds(30) ));
+        endpointConfigurator.UseMessageRetry(r =>
+            r.Exponential(50,
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromMinutes(1),
+                TimeSpan.FromSeconds(30)));
         endpointConfigurator.UseInMemoryOutbox();
     }
 }

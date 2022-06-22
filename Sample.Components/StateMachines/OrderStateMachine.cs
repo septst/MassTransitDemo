@@ -20,9 +20,7 @@ public class OrderStateMachine :
                     x.ExecuteAsync(async context =>
                         {
                             if (context.RequestId.HasValue)
-                            {
                                 await context.RespondAsync<OrderNotFound>(new { context.Message.OrderId });
-                            }
                         }
                     ));
             });
@@ -72,7 +70,6 @@ public class OrderState :
     SagaStateMachineInstance,
     ISagaVersion
 {
-    public Guid CorrelationId { get; set; }
     public string CurrentState { get; set; }
 
     public DateTime SubmitDate { get; set; }
@@ -81,4 +78,5 @@ public class OrderState :
 
 
     public int Version { get; set; }
+    public Guid CorrelationId { get; set; }
 }
