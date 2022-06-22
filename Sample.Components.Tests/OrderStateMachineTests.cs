@@ -2,7 +2,9 @@ using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using MassTransit;
+using MassTransit.SagaStateMachine;
 using MassTransit.Testing;
+using MassTransit.Visualizer;
 using Sample.Components.StateMachines;
 using Sample.Contracts;
 using Xunit;
@@ -190,5 +192,16 @@ public class OrderStateMachineTests
         {
             await harness.Stop();
         }
+    }
+
+    [Fact]
+    public async Task Show_Me_State_Machine()
+    {
+        var orderStateMachine = new OrderStateMachine();
+        var graph = orderStateMachine.GetGraph();
+        var generator = new StateMachineGraphvizGenerator(graph);
+        string dots = generator.CreateDotFile();
+        
+        _testOutputHelper.WriteLine(dots);
     }
 }
