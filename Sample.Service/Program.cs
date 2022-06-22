@@ -41,8 +41,11 @@ internal class Program
                 {
                     cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
                     cfg.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
-                        .RedisRepository(x =>
-                            x.DatabaseConfiguration("127.0.0.1:6379"));
+                        .MongoDbRepository(m =>
+                            {
+                                m.Connection = "mongodb://127.0.0.1";
+                                m.DatabaseName = "orders";
+                            });
                     cfg.UsingRabbitMq((context, mqCfg) => { mqCfg.ConfigureEndpoints(context); });
                 });
                 services.AddHostedService<MassTransitConsoleHostedService>();
