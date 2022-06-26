@@ -21,7 +21,13 @@ public class AcceptOrderActivity :
         IBehavior<OrderState, OrderAccepted> next)
     {
         Console.WriteLine($"The Order Id is {context.Message.OrderId}");
-        //Todo do something here later
+        var consumeContext = context.GetPayload<ConsumeContext>();
+        var sendEndpoint = await consumeContext.GetSendEndpoint(new Uri("exchange:fullfill-order"));
+        await sendEndpoint.Send<FullfillOrder>(new
+        {
+            context.Message.OrderId
+        });
+
         await next.Execute(context).ConfigureAwait(false);
     }
 

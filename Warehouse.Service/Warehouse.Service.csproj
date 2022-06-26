@@ -5,7 +5,6 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>Sample.ConsoleService</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,6 +25,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Sample.Components\Sample.Components.csproj"/>
+        <ProjectReference Include="..\Warehouse.Components\Warehouse.Components.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

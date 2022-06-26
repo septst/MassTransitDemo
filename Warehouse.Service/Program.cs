@@ -5,14 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Sample.Components.Consumers;
-using Sample.Components.CourierActivities;
-using Sample.Components.StateMachines;
-using Sample.Components.StateMachines.OrderStateMachineActivities;
 using Serilog;
 using Serilog.Events;
+using Warehouse.Components;
 
-namespace Sample.Service;
+namespace Warehouse.Service;
 
 internal class Program
 {
@@ -38,18 +35,10 @@ internal class Program
             })
             .ConfigureServices((hostContext, services) =>
             {
-                services.AddScoped<AcceptOrderActivity>();
                 services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
                 services.AddMassTransit(cfg =>
                 {
-                    cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
-                    cfg.AddActivitiesFromNamespaceContaining<AllocateInventoryActivity>();
-                    cfg.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
-                        .MongoDbRepository(m =>
-                        {
-                            m.Connection = "mongodb://127.0.0.1";
-                            m.DatabaseName = "orders";
-                        });
+                    cfg.AddConsumersFromNamespaceContaining<AllocateInventoryConsumer>();
                     cfg.UsingRabbitMq((context, mqCfg) => { mqCfg.ConfigureEndpoints(context); });
                 });
                 services.AddHostedService<MassTransitConsoleHostedService>();
